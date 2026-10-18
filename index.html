@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pâte à pizza</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<meta name="theme-color" content="#1f3a2e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: une colonne de travail — choix de version, carte de pesée, puis étapes chronologiques avec minuteries */
+:root{
+  --bg:#eef0ec; --surface:#fbfcfa; --ink:#18201b; --muted:#5c6860; --line:#d6dbd5;
+  --basil:#1f5a3c; --basil-soft:#dbe8df; --char:#2b2622; --ok:#2f7a4f; --warn:#b4541f;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614; --surface:#1a201c; --ink:#e7ece8; --muted:#9aa69e; --line:#2c3530;
+  --basil:#7fc79c; --basil-soft:#1f3328; --char:#e7ece8; --ok:#7fc79c; --warn:#f0a070; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a201c; --ink:#e7ece8; --muted:#9aa69e; --line:#2c3530;
+  --basil:#7fc79c; --basil-soft:#1f3328; --char:#e7ece8; --ok:#7fc79c; --warn:#f0a070; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+main{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font:800 clamp(1.9rem,8vw,2.6rem)/1.02 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h2{font:800 1.15rem/1.2 var(--display);margin:0}
+.eyebrow{font:700 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--basil)}
+.sub{color:var(--muted);margin:6px 0 0;max-width:60ch}
+header{display:flex;flex-direction:column;gap:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--basil);outline-offset:2px}
+
+.versions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ver{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.ver b{font:800 1.05rem/1.15 var(--display)}
+.ver span{font:500 .74rem/1.3 var(--mono);color:var(--muted)}
+.ver[aria-pressed="true"]{background:var(--basil);border-color:var(--basil);color:var(--surface)}
+.ver[aria-pressed="true"] span{color:inherit;opacity:.8}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ctl{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.ctl .lbl{font:700 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stepper output{font:700 1.6rem/1 var(--mono);font-variant-numeric:tabular-nums}
+.stepper small{font:500 .8rem var(--mono);color:var(--muted)}
+.round{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font:700 1.3rem/1 var(--mono)}
+.round:active{background:var(--basil-soft)}
+
+.scale{background:var(--char);color:var(--bg);border-radius:18px;padding:18px 18px 8px}
+.scale .eyebrow{color:inherit;opacity:.7}
+.scale table{width:100%;border-collapse:collapse;margin-top:10px}
+.scale td{padding:11px 0;border-top:1px solid color-mix(in srgb,var(--bg) 18%,transparent);vertical-align:baseline}
+.scale tr:first-child td{border-top:0}
+.scale .amt{text-align:right;font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scale .amt span{font-size:.8rem;opacity:.7;margin-left:3px}
+.scale .pct{display:block;font:500 .74rem var(--mono);opacity:.6}
+.total{display:flex;justify-content:space-between;gap:12px;font:500 .82rem var(--mono);opacity:.75;padding:10px 0 8px;flex-wrap:wrap}
+
+.note{background:var(--basil-soft);border-radius:14px;padding:14px 16px;font-size:.95rem}
+.note strong{color:var(--basil)}
+
+.steps-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.linkbtn{background:none;border:0;color:var(--muted);font:500 .8rem var(--mono);text-decoration:underline;padding:4px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.step:first-child{border-top:0}
+.check{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;font:700 .85rem var(--mono);color:var(--muted)}
+.step.done .check{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.step.done .stitle,.step.done p{opacity:.55}
+.stitle{font:700 1.02rem/1.3 var(--body);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dur{font:500 .75rem var(--mono);color:var(--muted)}
+.step p{margin:4px 0 0}
+.step p b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.timer{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tbtn{border:1px solid var(--basil);background:transparent;color:var(--basil);border-radius:999px;padding:7px 14px;font:700 .82rem var(--mono)}
+.tbtn.run{background:var(--basil);color:var(--surface)}
+.left{font:700 1rem var(--mono);font-variant-numeric:tabular-nums}
+.left.fin{color:var(--warn)}
+.ends{font:500 .75rem var(--mono);color:var(--muted)}
+footer{color:var(--muted);font-size:.8rem;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow">Napolitaine · 67,5 % · Ooni 16 à 850 °F</span>
+    <h1>Pâte à pizza napolitaine</h1>
+    <p class="sub">Farine 00, levure sèche active, sans huile ni sucre dans la pâte. Choisis quand tu vas cuire, la levure et les temps suivent.</p>
+  </header>
+
+  <section class="versions" aria-label="Version" id="versions"></section>
+
+  <section class="controls" aria-label="Quantités">
+    <div class="ctl">
+      <span class="lbl">Pâtons</span>
+      <div class="stepper">
+        <button class="round" id="nMinus" aria-label="Un pâton de moins">−</button>
+        <output id="n">4</output>
+        <button class="round" id="nPlus" aria-label="Un pâton de plus">+</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Poids par pâton</span>
+      <div class="stepper">
+        <button class="round" id="wMinus" aria-label="10 g de moins">−</button>
+        <output id="w">270<small> g</small></output>
+        <button class="round" id="wPlus" aria-label="10 g de plus">+</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="scale" aria-label="Pesée">
+    <span class="eyebrow">À peser</span>
+    <table><tbody id="ing"></tbody></table>
+    <div class="total"><span id="tot"></span><span id="ready"></span></div>
+  </section>
+
+  <div class="note" id="note"></div>
+
+  <section>
+    <div class="steps-head"><h2>Étapes</h2><button class="linkbtn" id="reset">Réinitialiser cette version</button></div>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <footer>Fonctionne hors ligne. Les minuteries et les étapes cochées restent sur ce téléphone. Une minuterie sonne seulement si l’app est ouverte, mais l’heure de fin reste affichée.</footer>
+</main>
+
+<script>
+const HYD=67.5, SALT=2.8, WARM_PER_BALL=17.5;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+const H=3600, M=60;
+const common=(water)=>[
+ {t:'Activer la levure',d:10*M,x:c=>`Dissoudre <b>${r01(c.yeast)} g</b> de levure dans <b>${r1(c.warm)} ml</b> d'eau tiède (35–40 °C). Laisser mousser.`},
+ {t:'Premier mélange',d:20*M,x:c=>`Dans le bol du KitchenAid, verser <b>${r1(c.cold)} ml</b> d'eau ${water} et la levure activée. Ajouter environ <b>${r1(c.flour*.9)} g</b> de farine. Crochet, vitesse 1, jusqu'à ce qu'il ne reste plus de farine sèche. Couvrir et laisser reposer.`},
+ {t:'Pétrir',d:9*M,x:c=>`Ajouter <b>${r01(c.salt)} g</b> de sel et le reste de la farine (<b>${r1(c.flour)-r1(c.flour*.9)} g</b>). Vitesse 2 jusqu'à une pâte lisse qui passe le test de la fenêtre.`},
+];
+const ball={t:'Bouler',d:0,x:()=>`Diviser en <b>${n}</b> pâtons de <b>${w} g</b> et bouler serré. Déposer dans un bac ou des contenants couverts.`};
+
+const VERSIONS={
+ h48:{name:'48 h',tag:'Recette de base',yeast:.2,water:'froide',
+  note:`<strong>Ta recette de référence.</strong> Fermentation longue au froid pour le meilleur goût et une pâte plus digeste. Elle tolère jusqu'à 72 h : dans ce cas, baisse la levure à environ 0,15 %.`,
+  steps:[...common('froide'),
+   {t:'Pointage',d:1*H,x:()=>`Couvrir et laisser reposer à température ambiante. Viser une pâte à 23–24 °C.`},ball,
+   {t:'Fermentation au froid',d:44*H,x:()=>`Réfrigérer environ 44 h, bac bien fermé.`},
+   {t:'Tempérer avant cuisson',d:3*H,x:()=>`Sortir les pâtons 3 h avant la cuisson, couverts, jusqu'à ce qu'ils soient détendus et souples.`}]},
+ h24:{name:'24 h',tag:'Demain',yeast:.3,water:'froide',
+  note:`<strong>Pour cuire demain.</strong> Un peu plus de levure et un pointage plus long à la température ambiante pour compenser la fermentation au froid plus courte.`,
+  steps:[...common('froide'),
+   {t:'Pointage',d:2*H,x:()=>`Couvrir et laisser lever à température ambiante. Viser une pâte à 23–24 °C.`},ball,
+   {t:'Fermentation au froid',d:18*H,x:()=>`Réfrigérer environ 18 h, bac bien fermé.`},
+   {t:'Tempérer avant cuisson',d:3*H,x:()=>`Sortir les pâtons 3 h avant la cuisson, couverts, jusqu'à ce qu'ils soient détendus et souples.`}]},
+ rush:{name:'Rush',tag:'Même journée',yeast:.4,water:'à environ 25 °C',
+  note:`<strong>Tout à température ambiante.</strong> Plus de levure et une eau tempérée, sans passage au frigo. Moins de goût qu'une pâte au froid, mais très correcte. Si ta cuisine est fraîche (moins de 21 °C), prévois 1 h de plus.`,
+  steps:[...common('à environ 25 °C'),
+   {t:'Pointage',d:2*H,x:()=>`Couvrir et laisser lever à température ambiante. Viser une pâte à 25–26 °C.`},ball,
+   {t:'Apprêt en pâtons',d:4.5*H,x:()=>`Laisser les pâtons couverts à température ambiante jusqu'à ce qu'ils aient environ doublé et soient souples au toucher.`}]},
+ freeze:{name:'Congélation',tag:'Pour plus tard',yeast:.25,water:'froide',
+  note:`<strong>Ajustée pour le gel.</strong> Environ 25 % plus de levure que la version 48 h, parce qu'une partie meurt au congélateur, et seulement 24 h au froid avant de congeler. La maturation se termine pendant la décongélation au frigo.`,
+  steps:[...common('froide'),
+   {t:'Pointage',d:1.5*H,x:()=>`Couvrir et laisser lever à température ambiante. Viser une pâte à 23–24 °C.`},ball,
+   {t:'Fermentation au froid',d:24*H,x:()=>`Réfrigérer 24 h, pas plus. Un pâton déjà rendu à 72 h gonfle mal après la congélation.`},
+   {t:'Congeler',d:0,x:c=>`Enrober chaque pâton d'un mince film d'huile d'olive (<b>${fmtTsp(c.oil)} c. à thé</b> au total), un sac zip par pâton, chasser l'air, congeler à plat. Idéalement d'ici 1 mois, maximum environ 3.`},
+   {t:'Décongeler au frigo',d:24*H,x:()=>`La veille de la cuisson, transférer les pâtons au frigo pour 18 à 24 h.`},
+   {t:'Tempérer avant cuisson',d:3.5*H,x:()=>`Sortir les pâtons 3 à 4 h avant la cuisson, couverts, jusqu'à ce qu'ils soient détendus et souples. Si le bord gonfle moins que d'habitude, ajoute 1 h.`}]},
+};
+const ORDER=['h48','h24','rush','freeze'];
+
+let v=store.get('v','h48'); if(!VERSIONS[v]) v='h48';
+let n=store.get('n',4), w=store.get('w',270);
+let done=store.get('done2',{}), timers=store.get('timers2',{});
+
+function calc(){
+  const Y=VERSIONS[v].yeast, total=n*w, flour=total/(1+(HYD+SALT+Y)/100);
+  const water=flour*HYD/100, warm=Math.min(WARM_PER_BALL*n,water);
+  return {total,flour,warm,cold:water-warm,salt:flour*SALT/100,yeast:flour*Y/100,oil:n*0.5,Y};
+}
+const r1=x=>Math.round(x), r01=x=>(Math.round(x*10)/10).toLocaleString('fr-CA'), pf=x=>x.toLocaleString('fr-CA');
+function fmtTsp(t){const q=Math.round(t*2)/2,i=Math.floor(q);return q%1?(i?i+' ':'')+'½':String(q)}
+function fmtDur(s){if(s>=H){const h=s/H;return pf(Math.round(h*10)/10)+' h'}return Math.round(s/M)+' min'}
+function fmtLeft(ms){let s=Math.max(0,Math.ceil(ms/1000));const h=Math.floor(s/H);s%=H;const m=Math.floor(s/M);s%=M;
+  return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')}
+function fmtEnd(t){return new Date(t).toLocaleString('fr-CA',{weekday:'short',hour:'2-digit',minute:'2-digit'})}
+const key=i=>v+':'+i;
+
+function renderVersions(){
+  document.getElementById('versions').innerHTML=ORDER.map(k=>`<button class="ver" data-v="${k}" aria-pressed="${k===v}"><b>${VERSIONS[k].name}</b><span>${VERSIONS[k].tag}</span></button>`).join('');
+}
+function renderIng(){
+  const c=calc(), V=VERSIONS[v];
+  document.getElementById('n').firstChild.nodeValue=n;
+  document.getElementById('w').firstChild.nodeValue=w;
+  const rows=[
+    ['Farine 00','100 %',r1(c.flour),'g'],
+    ['Eau tiède (35–40 °C)','pour la levure',r1(c.warm),'ml'],
+    [V.water==='froide'?'Eau froide':'Eau tempérée (~25 °C)',`${pf(HYD)} % d'eau au total`,r1(c.cold),'ml'],
+    ['Sel fin',`${pf(SALT)} %`,r01(c.salt),'g'],
+    ['Levure sèche active',`${pf(c.Y)} %`,r01(c.yeast),'g'],
+  ];
+  if(v==='freeze') rows.push(['Huile d’olive','pour enrober seulement',fmtTsp(c.oil),'c. à thé']);
+  document.getElementById('ing').innerHTML=rows.map(r=>`<tr><td>${r[0]}<span class="pct">${r[1]}</span></td><td class="amt">${r[2]}<span>${r[3]}</span></td></tr>`).join('');
+  document.getElementById('tot').textContent=`Pâte totale ${r1(c.total)} g`;
+  let secs=0; for(const s of V.steps){ if(v==='freeze'&&s.t==='Congeler') break; secs+=s.d; }
+  document.getElementById('ready').textContent=(v==='freeze'?'Au congélateur vers ':'Prête vers ')+fmtEnd(Date.now()+secs*1000)+' si tu commences maintenant';
+  document.getElementById('note').innerHTML=V.note;
+}
+function renderSteps(){
+  const c=calc(), S=VERSIONS[v].steps;
+  document.getElementById('steps').innerHTML=S.map((s,i)=>{
+    const k=key(i), tm=timers[k], d=done[k];
+    const tim=s.d?`<div class="timer"><button class="tbtn ${tm?'run':''}" data-t="${i}">${tm?'Arrêter':'Démarrer '+fmtDur(s.d)}</button>
+      ${tm?`<span class="left" id="left${i}"></span><span class="ends">fin ${fmtEnd(tm)}</span>`:''}</div>`:'';
+    return `<li class="step ${d?'done':''}"><button class="check" data-c="${i}" aria-label="Marquer l'étape ${i+1} comme faite" aria-pressed="${!!d}">${d?'✓':i+1}</button>
+      <div style="min-width:0"><div class="stitle">${s.t}${s.d?`<span class="dur">${fmtDur(s.d)}</span>`:''}</div><p>${s.x(c)}</p>${tim}</div></li>`}).join('');
+  tick();
+}
+function renderAll(){renderVersions();renderIng();renderSteps()}
+
+let ctx;
+function beep(){try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+  [0,.35,.7].forEach(o=>{const g=ctx.createGain(),os=ctx.createOscillator();os.frequency.value=880;os.connect(g);g.connect(ctx.destination);
+  g.gain.setValueAtTime(.25,ctx.currentTime+o);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+o+.3);os.start(ctx.currentTime+o);os.stop(ctx.currentTime+o+.3)})}catch(e){}
+  try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+const rang=new Set();
+function tick(){
+  const now=Date.now();
+  VERSIONS[v].steps.forEach((s,i)=>{const k=key(i),el=document.getElementById('left'+i);if(!el||!timers[k])return;const ms=timers[k]-now;
+    if(ms<=0){el.textContent='Terminé';el.classList.add('fin');if(!rang.has(k)&&ms>-60000){rang.add(k);beep()}}
+    else el.textContent=fmtLeft(ms)});
+}
+setInterval(tick,1000);
+
+let lock;
+async function wake(){try{if(Object.keys(timers).length&&navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>lock=null)}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-t]'),c=e.target.closest('[data-c]'),vb=e.target.closest('[data-v]');
+  if(vb){v=vb.dataset.v;store.set('v',v);renderAll();return}
+  if(t){const k=key(t.dataset.t);if(timers[k]){delete timers[k];rang.delete(k)}else{timers[k]=Date.now()+VERSIONS[v].steps[t.dataset.t].d*1000;try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}wake()}
+    store.set('timers2',timers);renderSteps()}
+  if(c){const k=key(c.dataset.c);if(done[k])delete done[k];else done[k]=1;store.set('done2',done);renderSteps()}
+});
+const upd=()=>{store.set('n',n);store.set('w',w);renderIng();renderSteps()};
+nMinus.onclick=()=>{if(n>1){n--;upd()}};nPlus.onclick=()=>{if(n<20){n++;upd()}};
+wMinus.onclick=()=>{if(w>200){w-=10;upd()}};wPlus.onclick=()=>{if(w<350){w+=10;upd()}};
+reset.onclick=()=>{for(const k of Object.keys(done))if(k.startsWith(v+':'))delete done[k];
+  for(const k of Object.keys(timers))if(k.startsWith(v+':')){delete timers[k];rang.delete(k)}
+  store.set('done2',done);store.set('timers2',timers);renderSteps()};
+renderAll();
+setInterval(renderIng,60000);
+</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>
+</body>
+</html>
